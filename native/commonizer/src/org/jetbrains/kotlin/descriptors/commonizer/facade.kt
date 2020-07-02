@@ -18,18 +18,26 @@ fun runCommonization(parameters: Parameters): Result {
 
     val storageManager = LockBasedStorageManager("Declaration descriptors commonization")
 
+    checkpoint("START")
+
     // build merged tree:
     val mergeResult = CirTreeMerger(storageManager, parameters).merge()
+
+    checkpoint("MERGED CIR TREE")
 
     // commonize:
     val mergedTree = mergeResult.root
     mergedTree.accept(CommonizationVisitor(mergedTree), Unit)
     parameters.progressLogger?.invoke("Commonized declarations")
 
+    checkpoint("COMMONIZED")
+
     // build resulting descriptors:
     val components = mergedTree.createGlobalBuilderComponents(storageManager, parameters)
     mergedTree.accept(DeclarationsBuilderVisitor1(components), emptyList())
     mergedTree.accept(DeclarationsBuilderVisitor2(components), emptyList())
+
+    checkpoint("BUILT DESCRIPTORS")
 
     val modulesByTargets = LinkedHashMap<Target, Collection<ModuleResult>>() // use linked hash map to preserve order
     components.targetComponents.forEach { component ->
@@ -48,4 +56,41 @@ fun runCommonization(parameters: Parameters): Result {
     parameters.progressLogger?.invoke("Prepared new descriptors")
 
     return Result.Commonized(modulesByTargets)
+}
+
+private fun checkpoint(name: String) {
+//    fun printMemoryUsage(message: String) {
+//        val runtime = Runtime.getRuntime()
+//
+//        val free = runtime.freeMemory()
+//        val total = runtime.totalMemory()
+//        val used = total - free
+//        val max = runtime.maxMemory()
+//
+//        fun Long.toHumanPresentation() = "${(this / 1024 / 1024)}MB"
+//
+//        println(
+//            """
+//            $message:
+//            - Used:  ${used.toHumanPresentation()}
+//            - Free:  ${free.toHumanPresentation()}
+//            - Total: ${total.toHumanPresentation()}
+//            - Max:   ${max.toHumanPresentation()}
+//        """.trimIndent()
+//        )
+//    }
+//
+//    println()
+//    println("*** Checkpoint \"$name\" ***")
+//    printMemoryUsage("Before-GC memory usage")
+//    print("Triggering GC...")
+//
+//    repeat(20) {
+//        System.gc()
+//    }
+////    Thread.sleep(1000 * 30)
+//
+//    println(" Done")
+//    printMemoryUsage("After-GC memory usage")
+//    println()
 }
