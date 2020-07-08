@@ -28,6 +28,7 @@ abstract class CirSimpleType : CirType(), CirHasVisibility {
     abstract val classifierId: CirClassifierId
     abstract val arguments: List<CirTypeProjection>
     abstract val isMarkedNullable: Boolean
+    // TODO: add outerType
 }
 
 data class CirFlexibleType(val lowerBound: CirSimpleType, val upperBound: CirSimpleType) : CirType()
