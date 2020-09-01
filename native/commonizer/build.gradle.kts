@@ -51,4 +51,4 @@ projectTest(parallel = true) {
     workingDir = rootDir
 }
 
-standardPublicJars()
+runtimeJar()
