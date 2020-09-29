@@ -28,7 +28,8 @@ dependencies {
     compileOnly(intellijDep()) { includeJars("trove4j") }
 
     // This dependency is necessary to keep the right dependency record inside of POM file:
-    publishedCompile(project(":kotlin-compiler"))
+//    publishedCompile(project(":kotlin-compiler"))
+    compile(project(":kotlin-compiler"))
 
     api(kotlinStdlib())
 
