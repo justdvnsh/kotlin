@@ -97,7 +97,8 @@ class KlibBasedMppIT : BaseGradleIT() {
                 "published-producer-metadata-commonMain.klib",
                 "published-dependency-metadata-$hostSpecificSourceSet.klib",
                 "published-dependency-metadata-commonMain.klib"
-            )
+            ),
+            isNative = true
         )
     }
 

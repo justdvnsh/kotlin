@@ -68,6 +68,8 @@ class NewMultiplatformIT : BaseGradleIT() {
     val supportedNativeTargets = configure().supported
     val unsupportedNativeTargets = configure().unsupported
 
+    private val buildCacheEnabledOptions = super.defaultBuildOptions().copy(withBuildCache = true)
+
     private fun Project.targetClassesDir(targetName: String, sourceSetName: String = "main") =
         classesDir(sourceSet = "$targetName/$sourceSetName")
 
@@ -1083,6 +1085,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testCanProduceNativeLibraries() = with(Project("new-mpp-native-libraries", gradleVersion)) {
+        prepareLocalBuildCache()
         val baseName = "main"
 
         val sharedPrefix = CompilerOutputKind.DYNAMIC.prefix(HostManager.host)
@@ -1134,8 +1137,12 @@ class NewMultiplatformIT : BaseGradleIT() {
             .takeIf { HostManager.hostIsMac }
             .orEmpty()
 
+        build("assemble", options = buildCacheEnabledOptions) {
+            assertSuccessful()
+        }
+
         // Building
-        build("assemble") {
+        build("clean", "assemble", options = buildCacheEnabledOptions) {
             assertSuccessful()
 
             sharedPaths.forEach { assertFileExists(it) }
@@ -1143,6 +1150,7 @@ class NewMultiplatformIT : BaseGradleIT() {
             headerPaths.forEach { assertFileExists(it) }
             frameworkPaths.forEach { assertFileExists(it) }
             assertFileExists(klibPath)
+            (linkTasks + frameworkTasks + klibTask).forEach { assertContains("$it FROM-CACHE") }
         }
 
         // Test that all up-to date checks are correct
@@ -1661,7 +1669,7 @@ class NewMultiplatformIT : BaseGradleIT() {
         val repo = libProject.projectDir.resolve("repo").absolutePath.replace('\\', '/')
 
         with(Project("new-mpp-native-cinterop", gradleVersion)) {
-
+            prepareLocalBuildCache()
             setupWorkingDir()
             listOf(gradleBuildScript(), gradleBuildScript("publishedLibrary")).forEach {
                 it.appendText(
@@ -1691,11 +1699,16 @@ class NewMultiplatformIT : BaseGradleIT() {
                 }
             }
 
-            build(":publishedLibrary:build", ":publishedLibrary:publish") {
+            build(":publishedLibrary:build", options = buildCacheEnabledOptions) {
                 assertSuccessful()
                 assertTasksExecuted(
                     targetsToBuild.map { ":publishedLibrary:cinteropStdio${it.capitalize()}" }
                 )
+            }
+
+            build(":publishedLibrary:clean", ":publishedLibrary:build", ":publishedLibrary:publish", options = buildCacheEnabledOptions) {
+                assertSuccessful()
+                targetsToBuild.forEach { assertTrue { output.contains(":publishedLibrary:cinteropStdio${it.capitalize()} FROM-CACHE") } }
                 assertTrue(output.contains("Published test"), "No test output found")
                 targetsToBuild.forEach {
                     assertFileExists("publishedLibrary/build/classes/kotlin/$it/main/publishedLibrary-cinterop-stdio.klib")
