@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.cli
 
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.test.CompilerTestUtil
+import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestCaseWithTmpdir
 import org.junit.Assert
 import java.io.File

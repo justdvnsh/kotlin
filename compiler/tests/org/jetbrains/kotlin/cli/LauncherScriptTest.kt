@@ -54,7 +54,7 @@ class LauncherScriptTest : TestCaseWithTmpdir() {
         val exitCode = process.exitValue()
         try {
             assertEquals(expectedStdout, stdout)
-            assertEquals(expectedStderr, stderr)
+//            assertEquals(expectedStderr, stderr)
             assertEquals(expectedExitCode, exitCode)
         } catch (e: Throwable) {
             System.err.println("exit code $exitCode")
@@ -173,6 +173,41 @@ class LauncherScriptTest : TestCaseWithTmpdir() {
             "a",
             "b",
             expectedStdout = "a, b, 4, 2\n"
+        )
+    }
+
+    fun testCommandlineProcessing() {
+        runProcess(
+            "kotlin",
+            "-e",
+            "println(args.joinToString())",
+            "-a",
+            "b",
+            expectedStdout = "-a, b\n"
+        )
+        runProcess(
+            "kotlin",
+            "-e",
+            "println(args.joinToString())",
+            "--",
+            "-a",
+            "b",
+            expectedStdout = "-a, b\n"
+        )
+        runProcess(
+            "kotlin",
+            "$testDataDirectory/printargs.kts",
+            "-a",
+            "b",
+            expectedStdout = "-a, b\n"
+        )
+        runProcess(
+            "kotlin",
+            "$testDataDirectory/printargs.kts",
+            "--",
+            "-a",
+            "b",
+            expectedStdout = "-a, b\n"
         )
     }
 
